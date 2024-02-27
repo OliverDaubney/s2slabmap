@@ -24,8 +24,11 @@ Local Files: support_file.py (included in repo).
 ## Tests
 Test 1: Labels from 20231016151000 mapped to 20231016151002.  
 ![20231016151000 mapped to 20231016151002](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_1.png)  
+  
 Test 2: Labels from 20231005123333 mapped to 20231005123336.  
-![20231005123333 mapped to 20231005123336.](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_2.png)
+![20231005123333 mapped to 20231005123336.](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_2.png)  
+
 Test 3: Labels from 20230827161846 mapped to 20230827161847.  
-![20230827161846 mapped to 20230827161847](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_3.png)
+![20230827161846 mapped to 20230827161847](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_3.png)  
+
 
