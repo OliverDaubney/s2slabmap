@@ -8,10 +8,11 @@ to another by correctly orienting a smaller image onto
 a larger image containing the same region as the smaller
 image. This involves four steps:
 1. Load small image, small_labels image and large image.
-2. Orient the small image over the large image.
-3. Use the orientation of the small image to map labels
+2. Orient the small image over the large image.  
+3. Set bounding boxes around letter clusters.
+4. Use the orientation of the small image to map clusters
 to the large image.
-4. Output large_labels image.
+5. Output large_labels image.
 
 How To Use This Script
 ----------------------
@@ -24,17 +25,20 @@ label is 'small_inklabels.png'.
 4. Wait for the steps to complete (or any error message)
 and collect output from the directory. The output will
 be named 'large_inklabels.png'. There will also be an 
-additional file called 'large_inklabels_test.png'.
+additional file called 'large_inklabels_papyrus.png'.
 
 Dependencies
 ------------
 Libraries: os, sys, collections, cv2 and numpy.
-Local Files: support_file.py (included in repo).
+Local Files: support_classes.py and support_functions.py
 """
 
 import os
 import sys
-import support_file as sf
+import cv2
+import numpy as np
+import support_functions as sf
+from support_classes import Mapper
 
 
 def main():
@@ -62,25 +66,54 @@ def main():
         return
     elif shape_check == 1:
         small_labels = small_labels[0:small.shape[0], 0:small.shape[1]]
-    
+
+    # Run a first approximation to generally orient the labels.
+    print('Orienting Images: running...(this can take a while!)', end='\r')
+    orienter = Mapper(template_ratio=0.05)
+    orienter.mount_images(large, small, small_labels)
+    orienter.orient_images(settings=[0.0, 360.0, 0.0, 36], use_flip=True)
+    small_labels = sf.rotate_image(small_labels, orienter.optimal_angle)
+    small = sf.rotate_image(small, orienter.optimal_angle)
+    if orienter.optimal_flip == 1:
+        small_labels = cv2.flip(small_labels, 1)
+        small = cv2.flip(small, 1)
+    # Update the location of the top left hand corner of the labels inside the large segment.
+    off_y, off_x = sf.get_offset(small_labels, orienter.get_min_side_ratio(small_labels))
+    loc = (orienter.optimal_loc[1]-off_y, orienter.optimal_loc[0]-off_x)
+    print('Orienting Images: COMPLETE')
+
+    # Find letter clusters using a modified breadth first search algorithm.
+    print('Letter Cluster Detection: running...', end='\r')
+    boundaries = sf.get_letter_boundries(label_image=small_labels, split_boxes=True)
+    print(f'Letter Cluster Detection: {len(boundaries)} Letter Clusters')
+
     # Create a match handler, orient images and map labels from small to large.
-    match_handler = sf.Match_Handler(template_size=200)
-    match_handler.mount_images(large, small, small_labels, padding=True)
-    match_handler.orient_images()
-    match_handler.map_labels()
-    large[large < match_handler.large_labels] = 0
+    labels = np.zeros(large.shape)
+    for index, box in enumerate(boundaries):
+        print(f'Mapping Labels: {index}', end='\r')
+        box.create_contents(image=small)
+        if np.prod(box.contents.shape) < 15000:
+            lab_mapper = Mapper(template_ratio=0.7)
+        else:
+            lab_mapper = Mapper(template_ratio=0.4)
+        Y_MIN, Y_MAX, X_MIN, X_MAX = sf.offsets(large, box.contents, (box.y_min+loc[0], box.x_min+loc[1]))
+        large_section = large[Y_MIN:Y_MAX, X_MIN:X_MAX]
+        lab_mapper.mount_images(large_section, box.contents, box.mask)
+        lab_mapper.orient_images(settings=[-10.0, 10.0, 0.0, 7], use_flip=False)
+        lab_mapper.map_labels(np.zeros(large_section.shape))
+        temp = labels[Y_MIN:Y_MAX, X_MIN:X_MAX]
+        labels[Y_MIN:Y_MAX, X_MIN:X_MAX] = np.where((lab_mapper.large_labels > 0), lab_mapper.large_labels, temp)
+        sf.save_image(
+            filepath=os.path.join(cwd, 'large_inklabels.png'),
+            image=labels
+        )
     print('Mapping Labels: COMPLETE')
-    
-    # Save outputs.
+
+    large[large < labels] = 0
     sf.save_image(
-        filepath=os.path.join(cwd, 'large_inklabels.png'),
-        image=match_handler.large_labels
-    )
-    sf.save_image(
-        filepath=os.path.join(cwd, 'large_inklabels_test.png'),
+        filepath=os.path.join(cwd, 'large_inklabels_papyrus.png'),
         image=large
     )
-    print('Saving Output: COMPLETE')
 
 
 if __name__ == '__main__':

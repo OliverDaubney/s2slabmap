@@ -2,13 +2,14 @@
 
 ## Purpose
 This is a script to map a set of labels from one image to another by correctly orienting a smaller image onto
-a larger image containing the same region as the smaller image. This involves four steps:  
+a larger image containing the same region as the smaller image. This involves five steps:  
 1. Load small image, small_labels image and large image.
 2. Orient the small image over the large image.
-3. Use the orientation of the small image to map labels to the large image.
-4. Output large_labels image.  
+3. Set bounding boxes around letter clusters.
+4. Use the orientation of the small image to map clusters to the large image.
+5. Output large_labels image.  
 
-Note: The labels will be mapped with the same geometry, which can result in historic artefacts being carried forward.
+Note: The clusters will be mapped with the same geometry, which can result in historic artefacts being carried forward.
 
 ## How To Use This Script
 1. Move tif files for large and small images into the directory and label them 'large.tif' and 'small.tif'.
@@ -19,16 +20,9 @@ be named 'large_inklabels.png'. There will also be an additional file called 'la
 
 ## Dependencies
 Libraries: os, sys, collections, cv2 and numpy.  
-Local Files: support_file.py (included in repo).
+Local Files: support_functions.py and support_classes.py (included in repo).
 
-## Tests
-Test 1: Labels from 20231016151000 mapped to 20231016151002.  
-![20231016151000 mapped to 20231016151002](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_1.png)  
-  
-Test 2: Labels from 20231005123333 mapped to 20231005123336.  
-![20231005123333 mapped to 20231005123336.](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_2.png)  
-
-Test 3: Labels from 20230827161846 mapped to 20230827161847.  
-![20230827161846 mapped to 20230827161847](https://github.com/OliverDaubney/s2slabmap/blob/main/images/test_3.png)  
-
+## Pipeline
+The overall process pipeline.  
+![Process Pipeline](https://github.com/OliverDaubney/s2slabmap/blob/main/images/pipeline.png)  
 
