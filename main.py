@@ -80,7 +80,7 @@ def main():
     # Update the location of the top left hand corner of the labels inside the large segment.
     off_y, off_x = sf.get_offset(small_labels, orienter.get_min_side_ratio(small_labels))
     loc = (orienter.optimal_loc[1]-off_y, orienter.optimal_loc[0]-off_x)
-    print('Orienting Images: COMPLETE')
+    print('Orienting Images: COMPLETE                             ')
 
     # Find letter clusters using a modified breadth first search algorithm.
     print('Letter Cluster Detection: running...', end='\r')
@@ -109,7 +109,7 @@ def main():
         )
     print('Mapping Labels: COMPLETE')
 
-    large[large < labels] = 0
+    large[labels > 0] = 0
     sf.save_image(
         filepath=os.path.join(cwd, 'large_inklabels_papyrus.png'),
         image=large
